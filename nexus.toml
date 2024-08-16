@@ -1,0 +1,47 @@
+[project]
+name = "zpp_flow"
+version = "1.0.3"
+description = "système d'exécution de task"
+mainfile = "__init__.py"
+requires-python = ">=3.11"
+
+[project.metadata]
+authors = ["ZephyrOff"]
+maintainers = []
+readme = "README.md"
+license = "mit"
+license_file = "LICENSE"
+keywords = []
+classifiers = []
+copyright = ""
+changelog = "changelog.md"
+
+[project.urls]
+changelog = ""
+homepage = ""
+documentation = ""
+
+[project.dependencies]
+zpp_args = "N.A"
+zpp_color = "N.A"
+zpp_config = "N.A"
+
+[project.dependencies.windows]
+
+[project.dependencies.linux]
+
+[project.build]
+packages = []
+includes = ["zpp_args", "zpp_color", "zpp_config"]
+excludes = []
+include_files = []
+optimize = 0
+no_compress = false
+GUI = false
+icon = ""
+
+[project.wheel]
+platforms = "ALL"
+
+[project.wheel.entry_points]
+console_scripts = ['flow = zpp_flow:main']
