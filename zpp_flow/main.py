@@ -31,7 +31,7 @@ class Flow:
 		#Création du répertoire base s'il n'existe pas
 		self.flow_base = expanduser(self.conf.load('flow_base', section='general'))
 		if not exists(self.flow_base):
-			makedirs(self.flow_base)
+			os.makedirs(self.flow_base)
 
 
 	@impmagic.loader(

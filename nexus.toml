@@ -1,6 +1,6 @@
 [project]
 name = "zpp_flow"
-version = "1.0.3"
+version = "1.0.4"
 description = "système d'exécution de task"
 mainfile = "__init__.py"
 requires-python = ">=3.11"
@@ -25,14 +25,15 @@ documentation = ""
 zpp_args = "N.A"
 zpp_color = "N.A"
 zpp_config = "N.A"
+impmagic = "N.A"
 
 [project.dependencies.windows]
 
 [project.dependencies.linux]
 
 [project.build]
-packages = []
-includes = ["zpp_args", "zpp_color", "zpp_config"]
+packages = ["zpp_args", "zpp_color", "zpp_config", "impmagic"]
+includes = []
 excludes = []
 include_files = []
 optimize = 0
