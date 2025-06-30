@@ -14,3 +14,7 @@
 
 ## [1.0.4] - 2024-09-11
 - Correction des dépendances
+
+## [1.1.0] - 2025-06-30
+- Correction du decorateur lors d'une double utilisation
+- Ajout de la partie vault

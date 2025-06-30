@@ -1,4 +1,54 @@
 import impmagic
+from os.path import join
+
+@impmagic.loader(
+	{'module':'logs', 'submodule': ['logs', 'print_nxs']},
+	{'module':'os.path', 'submodule': ['join']}
+)
+def parse_arguments(proc_arguments, parameters):
+	"""
+	Parse les paramètres en arguments nommés et positionnels.
+	
+	proc_arguments : [('arg1',), ('arg2', default), ...]
+	parameters : liste d'objets de types variés (str, int, float, bytes, etc)
+	
+	Retourne dict avec les arguments prêts pour appel fonction.
+	"""
+
+	c_args = {}
+	c_params = []
+
+	for p in parameters:
+		# On peut reconnaître un argument nommé uniquement si p est str et contient '='
+		if isinstance(p, str) and "=" in p:
+			k, v = p.split("=", 1)
+			c_args[k.strip()] = v.strip()  # Note: v reste une str ici, conversion possible à faire plus tard si besoin
+		else:
+			c_params.append(p)
+
+	args_function = {}
+
+	for a in proc_arguments:
+		name = a[0]
+		has_default = len(a) > 1
+		default = a[1] if has_default else None
+
+		if name in c_args:
+			# Ici c_args[name] est une str, on pourrait tenter une conversion automatique (optionnel)
+			args_function[name] = c_args[name]
+		elif c_params:
+			args_function[name] = c_params.pop(0)
+		elif has_default:
+			# même si default est None, on considère qu'on doit prendre la valeur par défaut
+			args_function[name] = default
+		else:
+			# Demande à l'utilisateur la valeur manquante
+			user_input = input(f"{name}: ")
+			args_function[name] = user_input
+
+	return args_function
+
+
 
 @impmagic.loader(
 	{'module':'logs', 'submodule': ['logs', 'print_nxs']},
@@ -12,53 +62,23 @@ def run_task(task_name, data, parameter, flow_base, debug=False):
 
 	for proc in data:
 		if 'path' in proc:
-			mod_file = impmagic.get_from_file(join(flow_base ,proc['path']))
+			mod_file = impmagic.get_from_file(join(flow_base, proc['path']))
 			func = getattr(mod_file, proc['func_name'])
 
 			logs(f"Démarrage de la fonction {proc['func_name']}", "info")
+
 			if len(proc['arguments']):
-				mandatory_size = sum(1 for t in proc['arguments'] if len(t) == 1)
-
-				#Vérifie si le nom d'un argument a été défini explicitement
-				dyn_args = True if sum(True for t in parameter if "=" in t)>0 else False
-
-				if len(parameter)-1 >= mandatory_size:
-					#Si des arguments sont définis avec key=value, parse et appelle de la fonction
-					if dyn_args:
-						c_args = {}
-						c_params = []
-
-						for p in parameter[1:]:
-							if "=" in p:
-								p = p.split("=", 1)
-								c_args[p[0]] = p[1]
-							else:
-								c_params.append(p)
-
-						args_function = {}
-
-						for a in proc['arguments']:
-							if a[0] in c_args:
-								args_function[a[0]] = c_args[a[0]]
-							else:
-								if len(c_params):
-									args_function[a[0]] = c_params.pop(0)
-								else:
-									if len(a)>1:
-										args_function[a[0]] = a[1]
-
-						result = func(**args_function)
-						show_debug(result)
-					else:
-						result = func(*parameter[1:len(proc['arguments'])+1])
-						show_debug(result)
-				else:
-					logs(f"task {task_name}: argument(s) manquant(s)", "warning")
+				try:
+					args_function = parse_arguments(proc['arguments'], parameter[1:])
+					result = func(**args_function)
+					show_debug(result)
+				except ValueError as e:
+					logs(f"task {task_name}: {e}", "warning")
 			else:
 				result = func()
 				show_debug(result)
 		else:
-			logs(f"task {task_name}: path non indentifié", "warning")
+			logs(f"task {task_name}: path non identifié", "warning")
 
 
 @impmagic.loader(
@@ -77,56 +97,31 @@ def run_flow(task_name, data, parameter, flow_base, debug=False):
 		result = None
 
 		if 'path' in proc:
-			mod_file = impmagic.get_from_file(join(flow_base ,proc['path']))
+			mod_file = impmagic.get_from_file(join(flow_base, proc['path']))
 			func = getattr(mod_file, proc['func_name'])
 
 			logs(f"Démarrage de la fonction {proc['func_name']}", "info")
-			#print(func)
+
 			if len(proc['arguments']):
-				mandatory_size = sum(1 for t in proc['arguments'] if len(t) == 1)
+				try:
+					args_function = parse_arguments(proc['arguments'], arguments)
+				except ValueError as e:
+					# Arguments obligatoires manquants, demander à l'utilisateur
+					missing_args = str(e).split(":")[-1].strip().split(",")
+					for arg in missing_args:
+						val = input(f"{arg.strip()}: ")
+						arguments.append(val)
+					args_function = parse_arguments(proc['arguments'], arguments)
 
-				#Vérifie si le nom d'un argument a été défini explicitement
-				dyn_args = True if sum(True for t in arguments if (isinstance(t, str) and "=" in t))>0 else False
-
-				if len(arguments) >= mandatory_size:
-					#Si des arguments sont définis avec key=value, parse et appelle de la fonction
-					if dyn_args:
-						c_args = {}
-						c_params = []
-
-						for p in arguments:
-							if "=" in p:
-								p = p.split("=", 1)
-								c_args[p[0]] = p[1]
-							else:
-								c_params.append(p)
-
-						args_function = {}
-
-						for a in proc['arguments']:
-							if a[0] in c_args:
-								args_function[a[0]] = c_args[a[0]]
-							else:
-								if len(c_params):
-									args_function[a[0]] = c_params.pop(0)
-								else:
-									if len(a)>1:
-										args_function[a[0]] = a[1]
-
-						result = func(**args_function)
-						show_debug(result)
-					else:
-						result = func(*arguments[:len(proc['arguments'])+1])
-						show_debug(result)
-				else:
-					logs(f"flow {task_name}: argument(s) manquant(s)", "warning")
+				result = func(**args_function)
+				show_debug(result)
 			else:
 				result = func()
 				show_debug(result)
 		else:
-			logs(f"flow {task_name}: path non indentifié", "warning")
+			logs(f"flow {task_name}: path non identifié", "warning")
 
-		#Récupération des arguments pour la fonction suivante
+		# Préparer les arguments pour la fonction suivante
 		if result:
 			if isinstance(result, tuple):
 				arguments = list(result)

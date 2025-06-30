@@ -16,7 +16,8 @@ def help():
 		"tree": "Afficher l'arborescence du répertoire base",
 		"pull": "Récupération d'un fichier du base",
 		"push": "Ajouter un fichier dans la base",
-		"pop": "Supprimer un fichier du base"
+		"pop": "Supprimer un fichier du base",
+		"vault": "Gestion du vault"
 	}
 
 	for el, le in helper.items():
@@ -84,6 +85,8 @@ class Cli:
 					self.push_base()
 				case "pop":
 					self.pop_base()
+				case "vault":
+					self.vault()
 				case _:
 					help()
 		else:
@@ -279,6 +282,39 @@ class Cli:
 		if parameter!=None:
 			self.flow.pop_base(parameter[0])
 
+
+	@impmagic.loader(
+		{'module':'vault', 'submodule': ['Vault', 'list']},
+		{'module':'logs', 'submodule': ['logs']},
+		{'module':'zpp_args'}
+	)
+	def vault(self):
+		parse = zpp_args.parser(sys.argv[1:])
+		parse.command = "flow vault"
+		parse.set_description("Gestion du vault")
+		parse.set_argument("s", "set", description="Initialisation d'un mot de passe", default=False, store="value")
+		parse.set_argument("g", "get", description="Récupération d'un mot de passe", default=False, store="value")
+		parse.set_argument("l", "list", description="Liste des clés disponibles", default=False)
+		parse.disable_check()
+		parameter, argument = parse.load()
+
+		if parameter!=None:
+			if argument.set:
+				v = Vault()
+				status_code = v.set_password(argument.set)
+				if status_code:
+					logs("Clé enregistrée", "success")
+				else:
+					logs("Erreur lors de l'enregistrement de la clé", "error")
+
+			elif argument.get:
+				v = Vault()
+				result = v.get_password(argument.get)
+				print(result)
+
+
+			elif argument.list:
+				list()
 
 def main():
 	Cli()

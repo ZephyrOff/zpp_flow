@@ -118,6 +118,22 @@ La commande permet de supprimer un script du répertoire de script
 ```console
 flow pop FILE_NAME
 ```
+
+### vault:
+
+La commande permet de lister, afficher ou ajouter un mot de passe dans le vault interne
+
+```console
+flow vault -s KEY
+```
+
+```console
+flow vault -g KEY
+```
+
+```console
+flow vault -l
+```
 <br>
 
 ## Création de script

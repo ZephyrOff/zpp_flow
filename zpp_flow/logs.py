@@ -1,23 +1,22 @@
 import impmagic
 
 @impmagic.loader(
-    {'module': 'zpp_color', 'submodule': ['fg', 'attr']},
-    {'module': 'datetime', 'submodule': ['datetime']},
+	{'module': 'zpp_color', 'submodule': ['fg', 'attr']},
+	{'module': 'datetime', 'submodule': ['datetime']},
 )
 def logs(message, lvl='info', nodate=True):
 	#if __main__.nxs.conf.load(val='logs.display', section='',default=True):
-	if lvl=='logs':
-		color = 'light_gray'
-	elif lvl=='info':
-		color = 'cyan'
-	elif lvl=='warning':
-		color = 'yellow'
-	elif lvl=='error':
-		color = 'red'
-	elif lvl=='critical':
-		color = 'light_red'
-	elif lvl=='valid':
-		color = 'green'
+	level_colors = {
+		'logs': 'light_gray',
+		'info': 'cyan',
+		'warning': 'yellow',
+		'error': 'red',
+		'critical': 'light_red',
+		'valid': 'green',
+		'success': 'green',
+	}
+
+	color = level_colors.get(lvl, 'cyan')  # couleur par défaut
 	
 	#if nodate==False or (nodate==None and __main__.nxs.conf.load(val='logs.date', section='',default=True)):
 	if not nodate:
@@ -28,7 +27,7 @@ def logs(message, lvl='info', nodate=True):
 
 
 @impmagic.loader(
-    {'module': 'zpp_color', 'submodule': ['fg', 'attr']}
+	{'module': 'zpp_color', 'submodule': ['fg', 'attr']}
 )
 def print_nxs(message, color=None, nojump=False):
 	if color==None:

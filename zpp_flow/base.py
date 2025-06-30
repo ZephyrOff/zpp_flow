@@ -89,7 +89,7 @@ def push_code(filename, flow_base, dest=None):
 		if dest:
 			dest = join(flow_base, dest)
 		else:
-			dest = join(flow_base, basename(parameter))
+			dest = join(flow_base, basename(file_path))
 
 		try:
 			if not exists(dirname(dest)):

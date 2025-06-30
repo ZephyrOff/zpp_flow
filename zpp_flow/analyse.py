@@ -1,5 +1,15 @@
 import impmagic
 
+def merge_dicts(default_dict, custom_dict):
+    result = default_dict.copy()
+    for key, value in custom_dict.items():
+        if isinstance(value, dict) and key in result and isinstance(result[key], dict):
+            # Récursion pour les dictionnaires imbriqués
+            result[key] = merge_dicts(result[key], value)
+        else:
+            result[key] = value
+    return result
+
 #Vérifie si une fonction attends des arguments
 @impmagic.loader(
 	{'module':'inspect'}
@@ -36,34 +46,39 @@ def get_function_arguments(func):
 #Récupération des informations d'une fonction
 def get_function_info(mod_file, data, type):
 	content = []
-	for func_name in data:
-		insert_base = {'func_name': func_name}
-		custom = {}
-		func_inf = getattr(mod_file, func_name, None)
+	for func_name, decorators_list in data.items():  # data est dict func_name -> list
+		for dec in decorators_list:
+			insert_base = {'func_name': func_name}
+			custom = {}
+			func_inf = getattr(mod_file, func_name, None)
 
-		if callable(func_inf):
-			# Récupérer tous les attributs de la fonction
-			attributes = dir(func_inf)
-			
-			# Filtrer les attributs qui commencent par '_flow'
-			flow_attributes = [attr for attr in attributes if attr.startswith('_taskflow_')]
-			for attribute in flow_attributes:
-				custom[attribute[10:]] = getattr(func_inf, attribute, None)
+			if callable(func_inf):
+				# Récupérer tous les attributs de la fonction
+				attributes = dir(func_inf)
+				
+				# Filtrer les attributs qui commencent par '_taskflow'
+				flow_attributes = [attr for attr in attributes if attr.startswith('_taskflow_')]
+				for attribute in flow_attributes:
+					custom[attribute[10:]] = getattr(func_inf, attribute, None)
 
-			#Parse des decorators pour récupérer les fonctions nécessaires
-			if "decorators" in custom:
-				for i, dec in enumerate(custom['decorators'].copy()):
-					insert = insert_base.copy()
-					#Définition du nom
-					if 'name' not in insert:
-						insert['name'] = func_name
-					
-					args_type = get_function_arguments(func_inf)
-					insert.update(args_type)
-					insert.update(dec)
+				#Parse des decorators pour récupérer les fonctions nécessaires
+				if "decorators" in custom:
+					for i, d in enumerate(custom['decorators'].copy()):
+						# Ici on ignore, car on prend direct 'dec' en paramètre
 
-					if f'is_{type}' in insert and insert[f'is_{type}']:
-						content.append(insert)
+						pass  # On peut virer cette boucle, on a 'dec' dans le paramètre externe
+
+				insert = insert_base.copy()
+				#Définition du nom
+				if 'name' not in insert:
+					insert['name'] = func_name
+				
+				args_type = get_function_arguments(func_inf)
+				insert.update(args_type)
+				insert.update(dec)
+
+				if f'is_{type}' in insert and insert[f'is_{type}']:
+					content.append(insert)
 
 	return content
 
@@ -78,38 +93,44 @@ def parse_module(mod_file, flow_base=None):
 
 	mod_filename = mod_file.__file__
 	if flow_base:
-		mod_filename = mod_filename.replace(flow_base+os.sep, "")
+		mod_filename = mod_filename.replace(flow_base + os.sep, "")
 
 	task_funcs, flow_funcs = find_decorated_functions(mod_file)
 	task_data = get_function_info(mod_file, task_funcs, type="task")
 	flow_data = get_function_info(mod_file, flow_funcs, type="flow")
 
 	for element in (task_data + flow_data):
-		if 'is_task' in element and element['is_task']:
+		if element.get('is_task'):
 			type_task = 'task'
 		else:
 			type_task = 'flow'
 
 		element['path'] = mod_filename
 
-		element_name = element['name']
+		element_name = element.get('name')
+		if not element_name:
+			raise ValueError("Element missing 'name' key")
+
+		# On peut supprimer 'name' si tu veux éviter duplication,
+		# mais prudence : ne pas l'utiliser ensuite !
 		del element['name']
+
 		if element_name not in func_total[type_task]:
-			func_total[type_task][element_name] = []
-			func_total[type_task][element_name].append(element)
+			func_total[type_task][element_name] = [element]
 		else:
+			# Vérifie la présence d'ordre pour tri
 			if 'order' in func_total[type_task][element_name][0] and 'order' in element:
 				func_total[type_task][element_name].append(element)
 				func_total[type_task][element_name] = sorted(func_total[type_task][element_name], key=lambda x: x['order'])
 			else:
-				raise ValueError(f"Value 'order' not define for multi-task {element['name']}")
+				raise ValueError(f"Value 'order' not defined for multi-task '{element_name}'")
 
 	return func_total
 
 
+
 @impmagic.loader(
-	{'module':'base', 'submodule': ['tree_base']},
-	{'module':'analyse', 'submodule': ['parse_module']}
+	{'module':'base', 'submodule': ['tree_base']}
 )
 def tree_plugin(flow_base):
 	mod_data = {}
@@ -118,10 +139,10 @@ def tree_plugin(flow_base):
 
 	for file in base_file:
 		mod_file = impmagic.get_from_file(file)
+
 		if mod_file:
 			mod_data_file = parse_module(mod_file, flow_base=flow_base)
-
-			mod_data.update(mod_data_file)
+			mod_data = merge_dicts(mod_data_file, mod_data)
 
 	#Ajout des fonctions *
 	if '*'in mod_data['task']:
@@ -137,22 +158,22 @@ def tree_plugin(flow_base):
 	{'module':'inspect'}
 )
 def find_decorated_functions(module):
-	task_functions = []
-	flow_functions = []
+    task_funcs = {}
+    flow_funcs = {}
 
-	for name, func in inspect.getmembers(module, inspect.isfunction):
-		for deco in getattr(func, '_taskflow_decorators', []):
-			if 'is_task' in deco and deco['is_task']:
-				task_functions.append(name)
-			if 'is_flow' in deco and deco['is_flow']:
-				flow_functions.append(name)
+    for name, func in inspect.getmembers(module, inspect.isfunction):
+        decorators = getattr(func, '_taskflow_decorators', [])
+        if decorators:
+            # Filtrer les décorateurs tasks et flows séparément
+            task_decos = [d for d in decorators if d.get('is_task')]
+            flow_decos = [d for d in decorators if d.get('is_flow')]
 
-			if getattr(func, '_taskflow_is_task', False):
-				task_functions.append(name)
-			if getattr(func, '_taskflow_is_flow', False):
-				flow_functions.append(name)
+            if task_decos:
+                task_funcs[name] = task_decos
+            if flow_decos:
+                flow_funcs[name] = flow_decos
 
-	return task_functions, flow_functions
+    return task_funcs, flow_funcs
 
 
 #Ajouter les fonctions * aux autres fonctions

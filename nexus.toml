@@ -1,6 +1,6 @@
 [project]
 name = "zpp_flow"
-version = "1.0.4"
+version = "1.1.0"
 description = "système d'exécution de task"
 mainfile = "__init__.py"
 requires-python = ">=3.11"
@@ -46,3 +46,11 @@ platforms = "ALL"
 
 [project.wheel.entry_points]
 console_scripts = ['flow = zpp_flow:main']
+
+[venv.builder]
+env_dir = ".venv/builder"
+env_name = "builder"
+env_exe = ".venv/builder/Scripts/python.exe"
+bin_path = ".venv/builder/Scripts"
+version = "N.A"
+default = true
