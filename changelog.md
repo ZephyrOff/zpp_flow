@@ -15,6 +15,10 @@
 ## [1.0.4] - 2024-09-11
 - Correction des dépendances
 
-## [1.1.0] - 2025-06-30
-- Correction du decorateur lors d'une double utilisation
-- Ajout de la partie vault
+## [1.1.0] - 2025-07-23
+- Bascule de base vers fabric
+- Restructuration du code
+- Ajout du vault
+
+## [1.2.0] - 2025-07-25
+- Ajout de la persistence des arguemnts et de la méthode set_persist

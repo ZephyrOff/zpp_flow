@@ -1,7 +1,7 @@
 import impmagic
 
 @impmagic.loader(
-	{'module':'logs', 'submodule': ['print_nxs']}
+	{'module':'app.logs', 'submodule': ['print_nxs']}
 )
 def help():
 	print_nxs("    ________             \n   / ____/ /___ _      __\n  / /_  / / __ \\ | /| / /\n / __/ / / /_/ / |/ |/ / \n/_/   /_/\\____/|__/|__/  \n                         \n")
@@ -12,12 +12,12 @@ def help():
 		"list": "Liste les task/flow disponibles",
 		"info": "Affiche les détails d'une task/flow",
 		"details": "Affiche les détails de l'ensemble des task/flow",
-		"base": "Ouvrir le répertoire base",
-		"tree": "Afficher l'arborescence du répertoire base",
-		"pull": "Récupération d'un fichier du base",
-		"push": "Ajouter un fichier dans la base",
-		"pop": "Supprimer un fichier du base",
-		"vault": "Gestion du vault"
+		"fabric": "Ouvrir le répertoire fabric",
+		"tree": "Afficher l'arborescence du répertoire fabric",
+		"pull": "Récupération d'un fichier du fabric",
+		"push": "Ajouter un fichier dans la fabric",
+		"pop": "Supprimer un fichier du fabric",
+		"vault": "Gestion du vault",
 	}
 
 	for el, le in helper.items():
@@ -50,7 +50,7 @@ def print_config(data):
 
 class Cli:
 	@impmagic.loader(
-		{'module':'main', 'submodule': ['Flow']}
+		{'module':'core.main', 'submodule': ['Flow']}
 	)
 	def __init__(self):
 		self.flow = Flow()
@@ -60,7 +60,7 @@ class Cli:
 
 	@impmagic.loader(
 		{'module':'sys'},
-		{'module':'base', 'submodule': ['show_tree']}
+		{'module':'fabric.fabric', 'submodule': ['show_tree']}
 	)
 	def switch(self):
 		if len(sys.argv)>1:
@@ -75,16 +75,16 @@ class Cli:
 					self.info()
 				case "details":
 					self.details()
-				case "base":
-					self.flow.open_base()
+				case "fabric":
+					self.flow.open_fabric()
 				case "tree":
-					show_tree(self.flow.flow_base)
+					show_tree(self.flow.flow_fabric)
 				case "pull":
-					self.pull_base()
+					self.pull_fabric()
 				case "push":
-					self.push_base()
+					self.push_fabric()
 				case "pop":
-					self.pop_base()
+					self.pop_fabric()
 				case "vault":
 					self.vault()
 				case _:
@@ -94,7 +94,7 @@ class Cli:
 
 
 	@impmagic.loader(
-		{'module':'logs', 'submodule': ['logs']},
+		{'module':'app.logs', 'submodule': ['logs']},
 		{'module':'zpp_args'}
 	)
 	def start(self):
@@ -106,6 +106,9 @@ class Cli:
 		parse.set_argument("d", "debug", description="Lancement en mode debug", default=False)
 		parse.set_argument("r", "repeat", description="Intervalle de répétition", default=None, store="value")
 		parse.set_argument("s", "starter", description="Définir l'heure de démarrage", default=None, store="value")
+		parse.set_argument("S", "sandbox", description="Lancer dans un environnement temporaire", default=False)
+		parse.set_argument("T", "timer", description="Mesurer la durée d'exécution", default=False)
+		parse.set_argument("v", "verbose", description="Mode verbose", default=False)
 		parse.set_parameter("task_name", description="Nom de la task")
 		parse.set_parameter("argument", description="Différents arguments")
 		parse.disable_check()
@@ -113,7 +116,7 @@ class Cli:
 
 		if parameter!=None:
 			if len(parameter):
-				self.flow.start(task_name=parameter[0], parameter=parameter, only_task=argument.task, only_flow=argument.flow, starter=argument.starter, repeat=argument.repeat, debug=argument.debug)
+				self.flow.start(task_name=parameter[0], parameter=parameter, only_task=argument.task, only_flow=argument.flow, starter=argument.starter, repeat=argument.repeat, debug=argument.debug, is_sandbox=argument.sandbox, verbose=argument.verbose, timer=argument.timer)
 
 			else:
 				logs("Nom de la task/flow non précisé", "error")
@@ -121,41 +124,63 @@ class Cli:
 
 	#Afficher le détail des task et flow
 	@impmagic.loader(
-		{'module':'logs', 'submodule': ['print_nxs']},
-		{'module':'analyse', 'submodule': ['tree_plugin']},
+		{'module':'zpp_args'},
+		{'module':'app.logs', 'submodule': ['print_nxs']},
+		{'module':'fabric.analyse', 'submodule': ['tree_plugin']},
 	)
 	def details(self):
-		data = self.flow.details()
+		parse = zpp_args.parser(sys.argv[1:])
+		parse.command = "flow details"
+		parse.set_description("Afficher la liste des task/flow")
+		parse.set_argument("t", "task", description="Filtrer sur les task", default=False)
+		parse.set_argument("f", "flow", description="Filtrer sur les flow", default=False)
+		parameter, argument = parse.load()
 
-		print_nxs("== TASK ==", color='dark_gray')
-		print_config(data['task'])
+		if parameter!=None:
+			data = self.flow.details()
 
-		print_nxs("\n== FLOW==", color='dark_gray')
-		print_config(data['flow'])
+			if argument.task or (not argument.task and not argument.flow):
+				print_nxs("== TASK ==", color='dark_gray')
+				print_config(data['task'])
+
+			if argument.flow or (not argument.task and not argument.flow):
+				print_nxs("\n== FLOW==", color='dark_gray')
+				print_config(data['flow'])
 
 
 	#Afficher la liste des task et flow
 	@impmagic.loader(
-		{'module':'logs', 'submodule': ['print_nxs']}
+		{'module':'zpp_args'},
+		{'module':'app.logs', 'submodule': ['print_nxs']}
 	)
 	def list(self):
-		task, flow = self.flow.list()
+		parse = zpp_args.parser(sys.argv[1:])
+		parse.command = "flow list"
+		parse.set_description("Afficher la liste des task/flow")
+		parse.set_argument("t", "task", description="Filtrer sur les task", default=False)
+		parse.set_argument("f", "flow", description="Filtrer sur les flow", default=False)
+		parameter, argument = parse.load()
 
-		print_nxs("== TASK ==", color='dark_gray')
-		for t in task:
-			print_nxs(t)
+		if parameter!=None:
+			task, flow = self.flow.list()
 
-		print_nxs("\n== FLOW==", color='dark_gray')
-		for f in flow:
-			print_nxs(f)
+			if argument.task or (not argument.task and not argument.flow):
+				print_nxs("== TASK ==", color='dark_gray')
+				for t in task:
+					print_nxs(t)
+
+			if argument.flow or (not argument.task and not argument.flow):
+				print_nxs("\n== FLOW==", color='dark_gray')
+				for f in flow:
+					print_nxs(f)
 
 
 	#Afficher les détails d'une task ou d'un flow
 	@impmagic.loader(
 		{'module':'zpp_args'},
 		{'module':'sys'},
-		{'module':'logs', 'submodule': ['logs', 'print_nxs']},
-		{'module':'analyse', 'submodule': ['tree_plugin']}
+		{'module':'app.logs', 'submodule': ['logs', 'print_nxs']},
+		{'module':'fabric.analyse', 'submodule': ['tree_plugin']}
 	)
 	def info(self):
 		parse = zpp_args.parser(sys.argv[1:])
@@ -168,7 +193,6 @@ class Cli:
 
 		if parameter!=None:
 			data = self.flow.details()
-			#data = tree_plugin(self.flow_base)
 
 			task_data = None
 
@@ -199,12 +223,12 @@ class Cli:
 
 	@impmagic.loader(
 		{'module':'zpp_args'},
-		{'module':'logs', 'submodule': ['logs', 'print_nxs']}
+		{'module':'app.logs', 'submodule': ['logs', 'print_nxs']}
 	)
 	def config(self):
 		parse = zpp_args.parser(sys.argv[1:])
 		parse.command = "flow config"
-		parse.set_description("Affichage/Modification de la configuration de nexus")
+		parse.set_description("Affichage/Modification de la configuration")
 		parse.disable_check()
 		parameter, argument = parse.load()
 
@@ -240,52 +264,52 @@ class Cli:
 		{'module':'zpp_args'},
 		{'module':'sys'}
 	)
-	def pull_base(self):
+	def pull_fabric(self):
 		parse = zpp_args.parser(sys.argv[1:], error_lock=True)
 		parse.command = "flow pull"
-		parse.set_description("Récupération d'un fichier du base")
+		parse.set_description("Récupération d'un fichier du fabric")
 		parse.set_argument("o", "output", description="Spécifier le chemin de sortie", default=False, store="value")
 		parse.set_parameter("path", description="Fichier à récupérer")
 		parameter, argument = parse.load()
 
 		if parameter!=None:
-			self.flow.pull_base(parameter[0], argument.output)
+			self.flow.pull_fabric(parameter[0], argument.output)
 
 
 	@impmagic.loader(
 		{'module':'zpp_args'},
 		{'module':'sys'}
 	)
-	def push_base(self):
+	def push_fabric(self):
 		parse = zpp_args.parser(sys.argv[1:], error_lock=True)
 		parse.command = "flow push"
-		parse.set_description("Ajouter un fichier dans la base")
+		parse.set_description("Ajouter un fichier dans la fabric")
 		parse.set_argument("f", "folder", description="Spécifier l'emplacement", default=False, store="value")
 		parse.set_parameter("path", description="Fichier à envoyer")
 		parameter, argument = parse.load()
 
 		if parameter!=None:
-			self.flow.push_base(parameter[0], argument.folder)
+			self.flow.push_fabric(parameter[0], argument.folder)
 
 
 	@impmagic.loader(
 		{'module':'zpp_args'},
 		{'module':'sys'}
 	)
-	def pop_base(self):
+	def pop_fabric(self):
 		parse = zpp_args.parser(sys.argv[1:], error_lock=True)
 		parse.command = "flow pop"
-		parse.set_description("Supprimer un fichier du base")
+		parse.set_description("Supprimer un fichier du fabric")
 		parse.set_parameter("path", description="Fichier à supprimer")
 		parameter, argument = parse.load()
 
 		if parameter!=None:
-			self.flow.pop_base(parameter[0])
+			self.flow.pop_fabric(parameter[0])
 
 
 	@impmagic.loader(
-		{'module':'vault', 'submodule': ['Vault', 'list']},
-		{'module':'logs', 'submodule': ['logs']},
+		{'module':'core.vault', 'submodule': ['Vault', 'list']},
+		{'module':'app.logs', 'submodule': ['logs']},
 		{'module':'zpp_args'}
 	)
 	def vault(self):

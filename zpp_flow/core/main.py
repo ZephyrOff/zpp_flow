@@ -1,4 +1,31 @@
 import impmagic
+import __main__
+import atexit
+import signal
+
+__main__.ToDoClear = []
+
+@impmagic.loader(
+	{'module':'app.logs', 'submodule': ['logs']},
+	{'module':'os.path', 'submodule': ['basename', 'exists', 'isdir', 'isfile']},
+	{'module':'shutil', 'submodule': ['rmtree']},
+	{'module':'os', 'submodule': ['remove']}
+)
+def clear_env():
+	for file in __main__.ToDoClear:
+		if exists(file):
+			logs(f"Suppression de l'environnement {basename(file)}")
+			if isdir(file):
+				rmtree(file)
+			elif isfile(file):
+				remove(file)
+
+def handler_signal(signal_num, frame):
+	atexit._run_exitfuncs()
+
+
+atexit.register(clear_env)
+signal.signal(signal.SIGINT, handler_signal)
 
 
 class Flow:
@@ -9,7 +36,7 @@ class Flow:
 	)
 	def __init__(self):
 		if os.name=="nt":
-			self.flow_folder = expanduser("~\\AppData\\Local\\zpp_flow\\.config")
+			self.flow_folder = expanduser("~\\.config\\zpp_flow\\.config")
 		else:
 			self.flow_folder = expanduser("~/.config/zpp_flow/.config")
 
@@ -21,36 +48,36 @@ class Flow:
 			print("Création du fichier de config")
 			self.conf = Config(self.ini_file, auto_create = True)
 			if os.name=="nt":
-				self.conf.add(val="flow_base", key=join("~\\AppData\\Local\\zpp_flow\\.config", "base"), section="general")
+				self.conf.add(val="flow_fabric", key=join("~\\.config\\zpp_flow\\.config", "fabric"), section="general")
 			else:
-				self.conf.add(val="flow_base", key=join("~/.config/zpp_flow/.config", "base"), section="general")
+				self.conf.add(val="flow_fabric", key=join("~/.config/zpp_flow/.config", "fabric"), section="general")
 
 		else:
 			self.conf = Config(self.ini_file)
 
-		#Création du répertoire base s'il n'existe pas
-		self.flow_base = expanduser(self.conf.load('flow_base', section='general'))
-		if not exists(self.flow_base):
-			os.makedirs(self.flow_base)
+		#Création du répertoire fabric s'il n'existe pas
+		self.flow_fabric = expanduser(self.conf.load('flow_fabric', section='general'))
+		if not exists(self.flow_fabric):
+			os.makedirs(self.flow_fabric)
 
 
 	@impmagic.loader(
 		{'module':'os'}
 	)
-	def open_base(self):
-		os.startfile(self.flow_base)
+	def open_fabric(self):
+		os.startfile(self.flow_fabric)
 
 
 	@impmagic.loader(
-		{'module':'logs', 'submodule': ['logs', 'print_nxs']},
-		{'module':'runner', 'submodule': ['run_task', 'run_flow']},
-		{'module':'analyse', 'submodule': ['tree_plugin']},
+		{'module':'app.logs', 'submodule': ['logs', 'print_nxs']},
+		{'module':'core.runner', 'submodule': ['run_func']},
+		{'module':'fabric.analyse', 'submodule': ['tree_plugin']},
 		{'module':'datetime', 'submodule': ['datetime']},
 		{'module':'time'},
 		{'module':'re'}
 	)
-	def start(self, task_name, parameter, only_task=False, only_flow=False, starter=None, repeat=None, debug=False):
-		data = tree_plugin(self.flow_base)
+	def start(self, task_name, parameter, only_task=False, only_flow=False, starter=None, repeat=None, debug=False, is_sandbox=False, verbose=False, timer=False):
+		data = tree_plugin(self.flow_fabric)
 		
 		task_data = None
 
@@ -59,7 +86,6 @@ class Flow:
 		
 		if parameter[0] in data['task'] and (only_task or (not only_task and not only_flow)):
 			task_data = data['task'][parameter[0]]
-
 
 		if task_data and len(task_data):
 			if starter:
@@ -81,10 +107,8 @@ class Flow:
 
 			if 'is_task' in task_data[0] and task_data[0]['is_task']:
 				rtype = "task"
-				run_func = run_task
 			else:
 				rtype = "flow"
-				run_func = run_flow
 
 			if repeat:
 				matcher = re.match(r"^(?P<repeat_value>\d{1,})(?P<repeat_type>(s|m|h|d)?)$", repeat)
@@ -104,8 +128,9 @@ class Flow:
 							if rtype=="task":
 								print_nxs(f"Démarrage de la task {task_name}", color="magenta")
 							else:
-								print_nxs(f"Démarrage du flow {task_name}", color="magenta")
-							run_func(task_name, task_data, parameter, self.flow_base,debug=debug)
+								if verbose:
+									print_nxs(f"Démarrage du flow {task_name}", color="magenta")
+							run_func(rtype, task_name, task_data, parameter, self.flow_fabric,debug=debug, is_sandbox=is_sandbox, verbose=verbose, timer=timer)
 							print_nxs(f"Attente de la prochaine itération", color="magenta")
 							time.sleep(timer)
 					except KeyboardInterrupt:
@@ -117,7 +142,7 @@ class Flow:
 					print_nxs(f"Démarrage de la task {task_name}", color="magenta")
 				else:
 					print_nxs(f"Démarrage du flow {task_name}", color="magenta")
-				run_func(task_name, task_data, parameter, self.flow_base, debug=debug)
+				run_func(rtype, task_name, task_data, parameter, self.flow_fabric, debug=debug, is_sandbox=is_sandbox, verbose=verbose, timer=timer)
 
 		else:
 			logs(f"task {task_name} non trouvé", "warning")
@@ -125,45 +150,38 @@ class Flow:
 
 	#Afficher la liste des task et flow
 	@impmagic.loader(
-		{'module':'analyse', 'submodule': ['tree_plugin']}
+		{'module':'fabric.analyse', 'submodule': ['tree_plugin']}
 	)
 	def list(self):
-		data = tree_plugin(self.flow_base)
+		data = tree_plugin(self.flow_fabric)
 
 		return data['task'].keys(), data['flow'].keys()
 
 
 	#Afficher le détail des task et flow
 	@impmagic.loader(
-		{'module':'analyse', 'submodule': ['tree_plugin']}
+		{'module':'fabric.analyse', 'submodule': ['tree_plugin']}
 	)
 	def details(self):
-		return tree_plugin(self.flow_base)
+		return tree_plugin(self.flow_fabric)
 
 
 	@impmagic.loader(
-		{'module':'base', 'submodule': ['pull_code']}
+		{'module':'fabric.fabric', 'submodule': ['pull_code']}
 	)
-	def pull_base(self, filename, output=None):
-		pull_code(filename, self.flow_base, output)
+	def pull_fabric(self, filename, output=None):
+		pull_code(filename, self.flow_fabric, output)
 
 
 	@impmagic.loader(
-		{'module':'base', 'submodule': ['push_code']}
+		{'module':'fabric.fabric', 'submodule': ['push_code']}
 	)
-	def push_base(self, filename, dest=None):
-		push_code(filename, self.flow_base, dest)
+	def push_fabric(self, filename, dest=None):
+		push_code(filename, self.flow_fabric, dest)
 
 
 	@impmagic.loader(
-		{'module':'base', 'submodule': ['pop_code']}
+		{'module':'fabric.fabric', 'submodule': ['pop_code']}
 	)
-	def pop_base(self, filename):
-		pop_code(filename, self.flow_base)
-
-
-
-"""
-doc
-exécution d'un flow dans une sandbox (reprendre code nexus)
-"""
+	def pop_fabric(self, filename):
+		pop_code(filename, self.flow_fabric)

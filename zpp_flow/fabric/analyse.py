@@ -2,13 +2,29 @@ import impmagic
 
 def merge_dicts(default_dict, custom_dict):
     result = default_dict.copy()
+
     for key, value in custom_dict.items():
-        if isinstance(value, dict) and key in result and isinstance(result[key], dict):
-            # Récursion pour les dictionnaires imbriqués
-            result[key] = merge_dicts(result[key], value)
+        if key in result:
+            if isinstance(result[key], dict) and isinstance(value, dict):
+                # Fusion récursive des dictionnaires imbriqués
+                result[key] = merge_dicts(result[key], value)
+
+            elif isinstance(result[key], list) and isinstance(value, list):
+                # Concaténation des listes
+                result[key] += value
+
+                # Tri par 'order' si applicable
+                if result[key] and isinstance(result[key][0], dict) and 'order' in result[key][0]:
+                    result[key] = sorted(result[key], key=lambda x: x.get('order', 0))
+
+            else:
+                # Écrasement simple si types différents ou pas gérés
+                result[key] = value
         else:
             result[key] = value
+
     return result
+
 
 #Vérifie si une fonction attends des arguments
 @impmagic.loader(
@@ -48,8 +64,9 @@ def get_function_info(mod_file, data, type):
 	content = []
 	for func_name, decorators_list in data.items():  # data est dict func_name -> list
 		for dec in decorators_list:
-			insert_base = {'func_name': func_name}
+			insert_fabric = {'func_name': func_name}
 			custom = {}
+
 			func_inf = getattr(mod_file, func_name, None)
 
 			if callable(func_inf):
@@ -68,7 +85,7 @@ def get_function_info(mod_file, data, type):
 
 						pass  # On peut virer cette boucle, on a 'dec' dans le paramètre externe
 
-				insert = insert_base.copy()
+				insert = insert_fabric.copy()
 				#Définition du nom
 				if 'name' not in insert:
 					insert['name'] = func_name
@@ -86,14 +103,14 @@ def get_function_info(mod_file, data, type):
 @impmagic.loader(
 	{'module':'os'}
 )
-def parse_module(mod_file, flow_base=None):
+def parse_module(mod_file, flow_fabric=None):
 	func_total = {'task': {}, 'flow': {}}
 
 	mod_name = mod_file.__name__
 
 	mod_filename = mod_file.__file__
-	if flow_base:
-		mod_filename = mod_filename.replace(flow_base + os.sep, "")
+	if flow_fabric:
+		mod_filename = mod_filename.replace(flow_fabric + os.sep, "")
 
 	task_funcs, flow_funcs = find_decorated_functions(mod_file)
 	task_data = get_function_info(mod_file, task_funcs, type="task")
@@ -130,26 +147,27 @@ def parse_module(mod_file, flow_base=None):
 
 
 @impmagic.loader(
-	{'module':'base', 'submodule': ['tree_base']}
+	{'module':'fabric.fabric', 'submodule': ['tree_fabric']}
 )
-def tree_plugin(flow_base):
+def tree_plugin(flow_fabric):
 	mod_data = {}
 
-	base_file = tree_base(flow_base)
+	fabric_file = tree_fabric(flow_fabric)
 
-	for file in base_file:
+	for file in fabric_file:
 		mod_file = impmagic.get_from_file(file)
 
 		if mod_file:
-			mod_data_file = parse_module(mod_file, flow_base=flow_base)
+			mod_data_file = parse_module(mod_file, flow_fabric=flow_fabric)
 			mod_data = merge_dicts(mod_data_file, mod_data)
 
 	#Ajout des fonctions *
-	if '*'in mod_data['task']:
-		mod_data['task'] = broadcast_function(mod_data['task'], mod_data['task']['*'])
-		
-	if '*'in mod_data['flow']:
-		mod_data['flow'] = broadcast_function(mod_data['flow'], mod_data['flow']['*'])
+	if mod_data:
+		if '*'in mod_data['task']:
+			mod_data['task'] = broadcast_function(mod_data['task'], mod_data['task']['*'])
+			
+		if '*'in mod_data['flow']:
+			mod_data['flow'] = broadcast_function(mod_data['flow'], mod_data['flow']['*'])
 
 	return mod_data
 

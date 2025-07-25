@@ -75,12 +75,12 @@ La commande permet d'afficher les détails pour l'ensemble des task et flow dispo
 flow details
 ```
 
-### base
+### fabric
 
 La commande permet d'ouvrir le répertoire de script
 
 ```console
-flow base
+flow fabric
 ```
 
 ### tree:
@@ -118,22 +118,6 @@ La commande permet de supprimer un script du répertoire de script
 ```console
 flow pop FILE_NAME
 ```
-
-### vault:
-
-La commande permet de lister, afficher ou ajouter un mot de passe dans le vault interne
-
-```console
-flow vault -s KEY
-```
-
-```console
-flow vault -g KEY
-```
-
-```console
-flow vault -l
-```
 <br>
 
 ## Création de script
@@ -148,4 +132,12 @@ import zpp_flow
 @zpp_flow.task
 def hello_world():
 	print("Bonjour je suis une task")
+```
+
+Dans une fonction, il est possible de définir des arguments qui pourront être utilisés dans le reste du flow
+
+```python
+from zpp_flow.core.runner import set_persist
+
+set_persist(argument, value)
 ```

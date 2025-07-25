@@ -1,3 +1,3 @@
-from .decorator import *
-from .main import Flow
+from .core.decorator import *
+from .core.main import Flow
 from .cli import main
