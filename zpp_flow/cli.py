@@ -60,7 +60,7 @@ class Cli:
 
 	@impmagic.loader(
 		{'module':'sys'},
-		{'module':'fabric.fabric', 'submodule': ['show_tree']}
+		{'module':'internal_fabric.fabric', 'submodule': ['show_tree']}
 	)
 	def switch(self):
 		if len(sys.argv)>1:
@@ -126,7 +126,7 @@ class Cli:
 	@impmagic.loader(
 		{'module':'zpp_args'},
 		{'module':'app.logs', 'submodule': ['print_nxs']},
-		{'module':'fabric.analyse', 'submodule': ['tree_plugin']},
+		{'module':'internal_fabric.analyse', 'submodule': ['tree_plugin']},
 	)
 	def details(self):
 		parse = zpp_args.parser(sys.argv[1:])
@@ -180,7 +180,7 @@ class Cli:
 		{'module':'zpp_args'},
 		{'module':'sys'},
 		{'module':'app.logs', 'submodule': ['logs', 'print_nxs']},
-		{'module':'fabric.analyse', 'submodule': ['tree_plugin']}
+		{'module':'internal_fabric.analyse', 'submodule': ['tree_plugin']}
 	)
 	def info(self):
 		parse = zpp_args.parser(sys.argv[1:])

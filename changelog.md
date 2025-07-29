@@ -22,3 +22,6 @@
 
 ## [1.2.0] - 2025-07-25
 - Ajout de la persistence des arguemnts et de la méthode set_persist
+
+## [1.2.1] - 2025-07-29
+- Changement de fabric en internal_fabric pour éviter la confusion avec le module fabric SSH

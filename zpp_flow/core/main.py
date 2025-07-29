@@ -71,7 +71,7 @@ class Flow:
 	@impmagic.loader(
 		{'module':'app.logs', 'submodule': ['logs', 'print_nxs']},
 		{'module':'core.runner', 'submodule': ['run_func']},
-		{'module':'fabric.analyse', 'submodule': ['tree_plugin']},
+		{'module':'internal_fabric.analyse', 'submodule': ['tree_plugin']},
 		{'module':'datetime', 'submodule': ['datetime']},
 		{'module':'time'},
 		{'module':'re'}
@@ -150,7 +150,7 @@ class Flow:
 
 	#Afficher la liste des task et flow
 	@impmagic.loader(
-		{'module':'fabric.analyse', 'submodule': ['tree_plugin']}
+		{'module':'internal_fabric.analyse', 'submodule': ['tree_plugin']}
 	)
 	def list(self):
 		data = tree_plugin(self.flow_fabric)
@@ -160,28 +160,28 @@ class Flow:
 
 	#Afficher le détail des task et flow
 	@impmagic.loader(
-		{'module':'fabric.analyse', 'submodule': ['tree_plugin']}
+		{'module':'internal_fabric.analyse', 'submodule': ['tree_plugin']}
 	)
 	def details(self):
 		return tree_plugin(self.flow_fabric)
 
 
 	@impmagic.loader(
-		{'module':'fabric.fabric', 'submodule': ['pull_code']}
+		{'module':'internal_fabric.fabric', 'submodule': ['pull_code']}
 	)
 	def pull_fabric(self, filename, output=None):
 		pull_code(filename, self.flow_fabric, output)
 
 
 	@impmagic.loader(
-		{'module':'fabric.fabric', 'submodule': ['push_code']}
+		{'module':'internal_fabric.fabric', 'submodule': ['push_code']}
 	)
 	def push_fabric(self, filename, dest=None):
 		push_code(filename, self.flow_fabric, dest)
 
 
 	@impmagic.loader(
-		{'module':'fabric.fabric', 'submodule': ['pop_code']}
+		{'module':'internal_fabric.fabric', 'submodule': ['pop_code']}
 	)
 	def pop_fabric(self, filename):
 		pop_code(filename, self.flow_fabric)

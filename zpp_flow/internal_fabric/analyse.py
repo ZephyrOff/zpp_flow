@@ -147,7 +147,7 @@ def parse_module(mod_file, flow_fabric=None):
 
 
 @impmagic.loader(
-	{'module':'fabric.fabric', 'submodule': ['tree_fabric']}
+	{'module':'internal_fabric.fabric', 'submodule': ['tree_fabric']}
 )
 def tree_plugin(flow_fabric):
 	mod_data = {}
