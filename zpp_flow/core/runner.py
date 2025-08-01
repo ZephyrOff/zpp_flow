@@ -37,7 +37,10 @@ def parse_arguments(proc_arguments, parameters):
 	Retourne dict avec les arguments prêts pour appel fonction.
 	"""
 	#if persisted_args is None:
-	persisted_args = __main__.context_args
+	if hasattr(__main__, "context_args"):
+		persisted_args = __main__.context_args
+	else:
+		persisted_args = {}
 
 	c_args = {}
 	c_params = []

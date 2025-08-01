@@ -33,3 +33,14 @@
 	- Ajout de la commande --keyring
 	- Ajout de la commande --tree
 	- Amélioration de la gestion des clés
+## [1.3.1] - 2025-08-01
+- Fail version
+
+## [1.3.2] - 2025-08-01
+- Fail version
+
+## [1.3.3] - 2025-08-01
+- Correction du context_args dans le runner
+
+## [1.3.4] - 2025-08-01
+- Ajout de la méthode unset_password

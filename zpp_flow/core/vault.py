@@ -37,6 +37,14 @@ class Vault:
 			return ""
 
 
+	def unset_password(self, component=None):
+		try:
+			self.vault.erase(component)
+			return True
+		except:
+			return False
+
+
 	def get_list(self):
 		return self.vault.list()
 
