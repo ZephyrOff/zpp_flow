@@ -109,6 +109,7 @@ class Cli:
 		parse.set_argument("S", "sandbox", description="Lancer dans un environnement temporaire", default=False)
 		parse.set_argument("T", "timer", description="Mesurer la durée d'exécution", default=False)
 		parse.set_argument("v", "verbose", description="Mode verbose", default=False)
+		parse.set_argument("i", "identity", description="Ouvrir le vault depuis le keyring", default=False)
 		parse.set_parameter("task_name", description="Nom de la task")
 		parse.set_parameter("argument", description="Différents arguments")
 		parse.disable_check()
@@ -116,7 +117,9 @@ class Cli:
 
 		if parameter!=None:
 			if len(parameter):
-				self.flow.start(task_name=parameter[0], parameter=parameter, only_task=argument.task, only_flow=argument.flow, starter=argument.starter, repeat=argument.repeat, debug=argument.debug, is_sandbox=argument.sandbox, verbose=argument.verbose, timer=argument.timer)
+
+
+				self.flow.start(task_name=parameter[0], parameter=parameter, only_task=argument.task, only_flow=argument.flow, starter=argument.starter, repeat=argument.repeat, debug=argument.debug, is_sandbox=argument.sandbox, verbose=argument.verbose, timer=argument.timer, identity=argument.identity)
 
 			else:
 				logs("Nom de la task/flow non précisé", "error")
@@ -308,23 +311,29 @@ class Cli:
 
 
 	@impmagic.loader(
-		{'module':'core.vault', 'submodule': ['Vault', 'list']},
-		{'module':'app.logs', 'submodule': ['logs']},
-		{'module':'zpp_args'}
+		{'module':'core.vault', 'submodule': ['Vault']},
+		{'module':'app.logs', 'submodule': ['logs', 'print_tree']},
+		{'module':'zpp_args'},
+		{'module':'zpp_store'},
+		{'module':'keyring'},
 	)
 	def vault(self):
 		parse = zpp_args.parser(sys.argv[1:])
 		parse.command = "flow vault"
 		parse.set_description("Gestion du vault")
-		parse.set_argument("s", "set", description="Initialisation d'un mot de passe", default=False, store="value")
-		parse.set_argument("g", "get", description="Récupération d'un mot de passe", default=False, store="value")
+		parse.set_argument("s", "set", description="Initialisation d'un mot de passe", default=None, store="value")
+		parse.set_argument("u", "unset", description="Suppression d'un mot de passe", default=None, store="value")
+		parse.set_argument("g", "get", description="Récupération d'un mot de passe", default=None, store="value")
 		parse.set_argument("l", "list", description="Liste des clés disponibles", default=False)
+		parse.set_argument("t", "tree", description="Liste des clés disponibles", default=False)
+		parse.set_argument("i", "identity", description="Ouvrir le vault depuis le keyring", default=False)
+		parse.set_argument("k", "keyring", description="Initialiser le keyring", default=False)
 		parse.disable_check()
 		parameter, argument = parse.load()
 
 		if parameter!=None:
 			if argument.set:
-				v = Vault()
+				v = Vault(get_key_from_keyring=argument.identity)
 				status_code = v.set_password(argument.set)
 				if status_code:
 					logs("Clé enregistrée", "success")
@@ -332,13 +341,40 @@ class Cli:
 					logs("Erreur lors de l'enregistrement de la clé", "error")
 
 			elif argument.get:
-				v = Vault()
+				v = Vault(get_key_from_keyring=argument.identity)
 				result = v.get_password(argument.get)
 				print(result)
 
+			elif argument.unset:
+				v = Vault(get_key_from_keyring=argument.identity)
+				status_code = v.unset_password(argument.unset)
+				if status_code:
+					logs("Clé supprimée", "success")
+				else:
+					logs("Erreur lors de la suppression de la clé", "error")
 
 			elif argument.list:
-				list()
+				v = Vault(get_key_from_keyring=argument.identity)
+				for element in v.get_list():
+					print(f"- {element}")
+
+
+			elif argument.tree:
+				v = Vault(get_key_from_keyring=argument.identity)
+				result = v.get_password()
+				if result:
+					print_tree(result)
+
+			elif argument.keyring:
+				try:
+					key_vault = zpp_store.secure_input("Vault password: ")
+					keyring.set_password("flow", "identity", key_vault)
+					if key_vault==keyring.get_password("flow", "identity"):
+						logs("Keyring initialisé", "success")
+					else:
+						logs("Erreur lors de l'initialisation du keyring", "error")
+				except:
+					logs("Erreur lors de l'initialisation du keyring", "error")
 
 def main():
 	Cli()

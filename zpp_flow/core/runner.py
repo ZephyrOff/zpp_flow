@@ -171,7 +171,7 @@ def run_flow(task_name, data, parameter, flow_fabric, debug=False, verbose=False
 	{'module':'core.sandbox.env', 'submodule': ['command_shell', 'install_pool']},
 	{'module':'core.sandbox.sandbox', 'submodule': ['Sandbox']},
 )
-def run_func(task_type, task_name, task_data, parameter, flow_fabric, debug, is_sandbox=False, verbose=False, timer=False):
+def run_func(task_type, task_name, task_data, parameter, flow_fabric, debug, is_sandbox=False, verbose=False, timer=False, identity=False):
 	payload = {
 		"type": task_type,
 		"task_name": task_name,
@@ -181,6 +181,7 @@ def run_func(task_type, task_name, task_data, parameter, flow_fabric, debug, is_
 		"debug": debug,
 		"timer": timer,
 		"verbose": verbose,
+		"identity": identity,
 	}
 
 	payload = json.dumps(payload)
@@ -211,6 +212,7 @@ def run_func(task_type, task_name, task_data, parameter, flow_fabric, debug, is_
 	{'module':'sys'},
 	{'module':'time'},
 	{'module':'pathlib', 'submodule':['Path']},
+	{'module':'vault', 'submodule': ['get_password']},
 )
 def main():
 	if len(sys.argv)>1:
@@ -224,6 +226,13 @@ def main():
 
 		if payload['timer']:
 			start_time = time.time()
+
+		if payload['identity']:
+			#Récupération d'une clé pour ouvrir le vault dans __main__ avec le keyring
+			get_password(get_key_from_keyring=True)
+
+
+
 
 		if payload['type']=="task":
 			run_task(task_name=payload['task_name'], data=payload['data'], parameter=payload['parameter'], flow_fabric=payload['flow_fabric'], debug=payload['debug'], verbose=payload['verbose'])

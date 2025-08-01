@@ -76,7 +76,7 @@ class Flow:
 		{'module':'time'},
 		{'module':'re'}
 	)
-	def start(self, task_name, parameter, only_task=False, only_flow=False, starter=None, repeat=None, debug=False, is_sandbox=False, verbose=False, timer=False):
+	def start(self, task_name, parameter, only_task=False, only_flow=False, starter=None, repeat=None, debug=False, is_sandbox=False, verbose=False, timer=False, identity=False):
 		data = tree_plugin(self.flow_fabric)
 		
 		task_data = None
@@ -113,15 +113,15 @@ class Flow:
 			if repeat:
 				matcher = re.match(r"^(?P<repeat_value>\d{1,})(?P<repeat_type>(s|m|h|d)?)$", repeat)
 				if matcher:
-					timer = int(matcher.group('repeat_value'))
+					timer_wait = int(matcher.group('repeat_value'))
 
 					if matcher.group('repeat_type'):
 						if matcher.group('repeat_type')=="m":
-							timer *= 60
+							timer_wait *= 60
 						elif matcher.group('repeat_type')=="h":
-							timer *= 3600
+							timer_wait *= 3600
 						elif matcher.group('repeat_type')=="d":
-							timer *= 86400
+							timer_wait *= 86400
 
 					try:
 						while True:
@@ -130,9 +130,9 @@ class Flow:
 							else:
 								if verbose:
 									print_nxs(f"Démarrage du flow {task_name}", color="magenta")
-							run_func(rtype, task_name, task_data, parameter, self.flow_fabric,debug=debug, is_sandbox=is_sandbox, verbose=verbose, timer=timer)
+							run_func(rtype, task_name, task_data, parameter, self.flow_fabric,debug=debug, is_sandbox=is_sandbox, verbose=verbose, timer=timer, identity=identity)
 							print_nxs(f"Attente de la prochaine itération", color="magenta")
-							time.sleep(timer)
+							time.sleep(timer_wait)
 					except KeyboardInterrupt:
 						logs("Arrêt demandé")
 				else:
@@ -142,7 +142,7 @@ class Flow:
 					print_nxs(f"Démarrage de la task {task_name}", color="magenta")
 				else:
 					print_nxs(f"Démarrage du flow {task_name}", color="magenta")
-				run_func(rtype, task_name, task_data, parameter, self.flow_fabric, debug=debug, is_sandbox=is_sandbox, verbose=verbose, timer=timer)
+				run_func(rtype, task_name, task_data, parameter, self.flow_fabric, debug=debug, is_sandbox=is_sandbox, verbose=verbose, timer=timer, identity=identity)
 
 		else:
 			logs(f"task {task_name} non trouvé", "warning")

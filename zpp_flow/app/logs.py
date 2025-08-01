@@ -74,3 +74,26 @@ def format_duration(seconds):
     parts.append(f"{ms}ms")
 
     return ".".join(parts)
+
+
+def print_tree(data, prefix="", last=True):
+    """
+    Recursively prints a tree structure for a nested dictionary.
+    """
+    if not isinstance(data, dict):
+        print(prefix + "└── " + str(data))
+        return
+
+    items = list(data.items())
+    for i, (key, value) in enumerate(items):
+        is_last = (i == len(items) - 1)
+        connector = "└─ " if is_last else "├─ "
+        print(prefix + connector + key)
+        
+        new_prefix = prefix + ("   " if is_last else "│  ")
+        if isinstance(value, dict):
+            print_tree(value, new_prefix)
+        else:
+            # If the value is not a dictionary, print it as a leaf node.
+            # You might want to customize how non-dict values are printed.
+            pass # In this version, we only print keys of the main structure
