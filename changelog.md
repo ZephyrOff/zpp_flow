@@ -44,3 +44,6 @@
 
 ## [1.3.4] - 2025-08-01
 - Ajout de la méthode unset_password
+
+## [1.3.5] - 2025-09-09
+- Correction des requirements

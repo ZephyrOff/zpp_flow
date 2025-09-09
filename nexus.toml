@@ -1,6 +1,6 @@
 [project]
 name = "zpp_flow"
-version = "1.3.4"
+version = "1.3.5"
 description = "système d'exécution de task"
 mainfile = "__init__.py"
 requires-python = ">=3.11"
@@ -28,13 +28,15 @@ zpp_config = "N.A"
 impmagic = "N.A"
 keyring = "N.A"
 "keyrings.alt" = "N.A"
+zpp_store = "N.A"
+cryptography = "N.A"
 
 [project.dependencies.windows]
 
 [project.dependencies.linux]
 
 [project.build]
-packages = ["zpp_args", "zpp_color", "zpp_config", "impmagic", "keyring", "keyrings.alt"]
+packages = ["zpp_args", "zpp_color", "zpp_config", "impmagic", "keyring", "keyrings.alt", "zpp_store", "cryptography"]
 includes = ["app", "core", "internal_fabric", "cli", "console"]
 excludes = []
 include_files = []
