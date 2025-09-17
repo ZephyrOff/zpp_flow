@@ -27,7 +27,7 @@ def clear_persisted_context():
 	{'module':'app.logs', 'submodule': ['logs', 'print_nxs']},
 	{'module':'os.path', 'submodule': ['join']}
 )
-def parse_arguments(proc_arguments, parameters):
+def parse_arguments(proc_arguments, parameters, force_parse=False):
 	"""
 	Parse les paramètres en arguments nommés et positionnels.
 	
@@ -37,10 +37,7 @@ def parse_arguments(proc_arguments, parameters):
 	Retourne dict avec les arguments prêts pour appel fonction.
 	"""
 	#if persisted_args is None:
-	if hasattr(__main__, "context_args"):
-		persisted_args = __main__.context_args
-	else:
-		persisted_args = {}
+	persisted_args = __main__.context_args
 
 	c_args = {}
 	c_params = []
@@ -52,6 +49,10 @@ def parse_arguments(proc_arguments, parameters):
 			c_args[k.strip()] = v.strip()  # Note: v reste une str ici, conversion possible à faire plus tard si besoin
 		else:
 			c_params.append(p)
+
+	for el_key, el_value in c_args.items():
+		# Enregistrer les arguments utilisés
+		__main__.context_args[el_key] = el_value
 
 	args_function = {}
 
@@ -125,6 +126,9 @@ def run_flow(task_name, data, parameter, flow_fabric, debug=False, verbose=False
 	arguments = parameter[1:]
 	__main__.context_args = {}  # Conserve tous les paramètres au fil du flow
 
+	#Pour forcer un premier parsing des arguments
+	entrypoint = True
+
 	for proc in data:
 		result = None
 
@@ -135,7 +139,8 @@ def run_flow(task_name, data, parameter, flow_fabric, debug=False, verbose=False
 			if verbose:
 				logs(f"Démarrage de la fonction {proc['func_name']}", "info")
 
-			if len(proc['arguments']):
+			if len(proc['arguments']) or entrypoint:
+				entrypoint = False
 				try:
 					args_function = parse_arguments(proc['arguments'], arguments)
 				except ValueError as e:
@@ -143,11 +148,8 @@ def run_flow(task_name, data, parameter, flow_fabric, debug=False, verbose=False
 					missing_args = str(e).split(":")[-1].strip().split(",")
 					for arg in missing_args:
 						val = input(f"{arg.strip()}: ")
-						arguments.append(val)
+						parameter.append(val)
 					args_function = parse_arguments(proc['arguments'], arguments)
-				
-				# Enregistrer les arguments utilisés
-				__main__.context_args.update(args_function)
 
 				result = func(**args_function)
 				show_debug(result)

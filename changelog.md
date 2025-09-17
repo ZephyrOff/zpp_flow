@@ -47,3 +47,6 @@
 
 ## [1.3.5] - 2025-09-09
 - Correction des requirements
+
+## [1.4.0] - 2025-09-17
+- Changement du parsing des arguments
