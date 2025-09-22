@@ -1,6 +1,6 @@
 [project]
 name = "zpp_flow"
-version = "1.4.0"
+version = "1.4.1"
 description = "système d'exécution de task"
 mainfile = "__init__.py"
 requires-python = ">=3.11"

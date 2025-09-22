@@ -50,3 +50,6 @@
 
 ## [1.4.0] - 2025-09-17
 - Changement du parsing des arguments
+
+## [1.4.1] - 2025-09-22
+- Ajout des __main__.context_args lors d'un input de l'utilisateur

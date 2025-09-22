@@ -75,6 +75,7 @@ def parse_arguments(proc_arguments, parameters, force_parse=False):
 			# Demande à l'utilisateur la valeur manquante
 			user_input = input(f"{name}: ")
 			args_function[name] = user_input
+			__main__.context_args[name] = user_input
 
 	return args_function
 
