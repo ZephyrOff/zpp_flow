@@ -53,3 +53,7 @@
 
 ## [1.4.1] - 2025-09-22
 - Ajout des __main__.context_args lors d'un input de l'utilisateur
+
+## [1.5.0] - 2025-12-10
+- Patch pour PEP 328
+- Conversion du fichier de config pour zpp_config 2.0

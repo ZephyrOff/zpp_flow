@@ -4,10 +4,10 @@ import __main__
 
 class Sandbox:
 	@impmagic.loader(
-		{'module':'app.logs', 'submodule': ['logs']},
+		{'module':'zpp_flow.app.logs', 'submodule': ['logs']},
 		{'module':'re', 'submodule': ['compile']},
-		{'module':'core.sandbox.env', 'submodule': ['Context', 'create_temp_env', 'install_pool', 'open_environment']},
-		{'module':'core.sandbox.package', 'submodule': ['get_all_package', 'package_regex']},
+		{'module':'zpp_flow.core.sandbox.env', 'submodule': ['Context', 'create_temp_env', 'install_pool', 'open_environment']},
+		{'module':'zpp_flow.core.sandbox.package', 'submodule': ['get_all_package', 'package_regex']},
 	)
 	def __init__(self, requirements=None):
 		name, pathenv = create_temp_env(upgradepip=False)
@@ -32,7 +32,7 @@ class Sandbox:
 			"""
 
 	@impmagic.loader(
-		{'module':'core.sandbox.env', 'submodule': ['command_shell']},
+		{'module':'zpp_flow.core.sandbox.env', 'submodule': ['command_shell']},
 	)
 	def run(self, command):
 		logs("Lancement du script")

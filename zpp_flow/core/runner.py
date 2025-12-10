@@ -24,7 +24,7 @@ def clear_persisted_context():
 
 @impmagic.loader(
 	{'module':'__main__'},
-	{'module':'app.logs', 'submodule': ['logs', 'print_nxs']},
+	{'module':'zpp_flow.app.logs', 'submodule': ['logs', 'print_nxs']},
 	{'module':'os.path', 'submodule': ['join']}
 )
 def parse_arguments(proc_arguments, parameters, force_parse=False):
@@ -82,7 +82,7 @@ def parse_arguments(proc_arguments, parameters, force_parse=False):
 
 
 @impmagic.loader(
-	{'module':'app.logs', 'submodule': ['logs', 'print_nxs']},
+	{'module':'zpp_flow.app.logs', 'submodule': ['logs', 'print_nxs']},
 	{'module':'os.path', 'submodule': ['join']}
 )
 def run_task(task_name, data, parameter, flow_fabric, debug=False, verbose=False):
@@ -115,7 +115,7 @@ def run_task(task_name, data, parameter, flow_fabric, debug=False, verbose=False
 
 @impmagic.loader(
 	{'module':'__main__'},
-	{'module':'app.logs', 'submodule': ['logs', 'print_nxs']},
+	{'module':'zpp_flow.app.logs', 'submodule': ['logs', 'print_nxs']},
 	{'module':'os.path', 'submodule': ['join']}
 )
 def run_flow(task_name, data, parameter, flow_fabric, debug=False, verbose=False):
@@ -172,10 +172,10 @@ def run_flow(task_name, data, parameter, flow_fabric, debug=False, verbose=False
 
 
 @impmagic.loader(
-	{'module':'app.logs', 'submodule': ['logs']},
+	{'module':'zpp_flow.app.logs', 'submodule': ['logs']},
 	{'module':'os.path', 'submodule': ['abspath', 'join', 'split']},
-	{'module':'core.sandbox.env', 'submodule': ['command_shell', 'install_pool']},
-	{'module':'core.sandbox.sandbox', 'submodule': ['Sandbox']},
+	{'module':'zpp_flow.core.sandbox.env', 'submodule': ['command_shell', 'install_pool']},
+	{'module':'zpp_flow.core.sandbox.sandbox', 'submodule': ['Sandbox']},
 )
 def run_func(task_type, task_name, task_data, parameter, flow_fabric, debug, is_sandbox=False, verbose=False, timer=False, identity=False):
 	payload = {
@@ -218,7 +218,7 @@ def run_func(task_type, task_name, task_data, parameter, flow_fabric, debug, is_
 	{'module':'sys'},
 	{'module':'time'},
 	{'module':'pathlib', 'submodule':['Path']},
-	{'module':'vault', 'submodule': ['get_password']},
+	{'module':'zpp_flow.core.vault', 'submodule': ['get_password']},
 )
 def main():
 	if len(sys.argv)>1:

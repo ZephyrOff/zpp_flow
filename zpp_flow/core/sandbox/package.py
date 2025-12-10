@@ -8,7 +8,7 @@ package_regex = r"(?P<name>^([a-zA-Z0-9_.-]+))\s?\(?(?P<version>(>=|!=|<=|<|>|\^
 @impmagic.loader(
 	{'module':'subprocess'},
 	{'module':'re', 'submodule': ['compile']},
-	{'module':'core.structure', 'submodule': ['path_rep']},
+	{'module':'zpp_flow.core.structure', 'submodule': ['path_rep']},
 )
 def get_all_package(env_exe, clean_name=False):
 	env_exe = env_exe.replace(path_rep[1], path_rep[0])
@@ -39,7 +39,7 @@ def get_all_package(env_exe, clean_name=False):
 	{'module':'__main__'},
 	{'module':'subprocess'},
 	{'module':'re', 'submodule': ['compile']},
-	{'module':'core.structure', 'submodule': ['path_rep']},
+	{'module':'zpp_flow.core.structure', 'submodule': ['path_rep']},
 )
 def get_package(env_exe, namemodule):
 	env_exe = env_exe.replace(path_rep[1], path_rep[0])

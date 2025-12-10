@@ -67,7 +67,7 @@ class Console:
 		self.loop()
 
 	@impmagic.loader(
-		{'module':'app.logs', 'submodule': ['print_nxs']},
+		{'module':'zpp_flow.app.logs', 'submodule': ['print_nxs']},
 	)
 	def loop(self):
 		while True:
@@ -99,7 +99,7 @@ class Console:
 
 
 	@impmagic.loader(
-		{'module':'app.logs', 'submodule': ['print_nxs']},
+		{'module':'zpp_flow.app.logs', 'submodule': ['print_nxs']},
 	)
 	def background(self, command):
 		if len(command)>1:

@@ -6,7 +6,7 @@ import signal
 __main__.ToDoClear = []
 
 @impmagic.loader(
-	{'module':'app.logs', 'submodule': ['logs']},
+	{'module':'zpp_flow.app.logs', 'submodule': ['logs']},
 	{'module':'os.path', 'submodule': ['basename', 'exists', 'isdir', 'isfile']},
 	{'module':'shutil', 'submodule': ['rmtree']},
 	{'module':'os', 'submodule': ['remove']}
@@ -46,7 +46,7 @@ class Flow:
 			if not exists(self.flow_folder):
 				os.makedirs(self.flow_folder)
 			print("Création du fichier de config")
-			self.conf = Config(self.ini_file, auto_create = True)
+			self.conf = Config(self.ini_file)
 			if os.name=="nt":
 				self.conf.add(val="flow_fabric", key=join("~\\.config\\zpp_flow\\.config", "fabric"), section="general")
 			else:
@@ -56,7 +56,7 @@ class Flow:
 			self.conf = Config(self.ini_file)
 
 		#Création du répertoire fabric s'il n'existe pas
-		self.flow_fabric = expanduser(self.conf.load('flow_fabric', section='general'))
+		self.flow_fabric = expanduser(self.conf.get('general.flow_fabric'))
 		if not exists(self.flow_fabric):
 			os.makedirs(self.flow_fabric)
 
@@ -69,9 +69,9 @@ class Flow:
 
 
 	@impmagic.loader(
-		{'module':'app.logs', 'submodule': ['logs', 'print_nxs']},
-		{'module':'core.runner', 'submodule': ['run_func']},
-		{'module':'internal_fabric.analyse', 'submodule': ['tree_plugin']},
+		{'module':'zpp_flow.app.logs', 'submodule': ['logs', 'print_nxs']},
+		{'module':'zpp_flow.core.runner', 'submodule': ['run_func']},
+		{'module':'zpp_flow.internal_fabric.analyse', 'submodule': ['tree_plugin']},
 		{'module':'datetime', 'submodule': ['datetime']},
 		{'module':'time'},
 		{'module':'re'}
@@ -150,7 +150,7 @@ class Flow:
 
 	#Afficher la liste des task et flow
 	@impmagic.loader(
-		{'module':'internal_fabric.analyse', 'submodule': ['tree_plugin']}
+		{'module':'zpp_flow.internal_fabric.analyse', 'submodule': ['tree_plugin']}
 	)
 	def list(self):
 		data = tree_plugin(self.flow_fabric)
@@ -160,28 +160,28 @@ class Flow:
 
 	#Afficher le détail des task et flow
 	@impmagic.loader(
-		{'module':'internal_fabric.analyse', 'submodule': ['tree_plugin']}
+		{'module':'zpp_flow.internal_fabric.analyse', 'submodule': ['tree_plugin']}
 	)
 	def details(self):
 		return tree_plugin(self.flow_fabric)
 
 
 	@impmagic.loader(
-		{'module':'internal_fabric.fabric', 'submodule': ['pull_code']}
+		{'module':'zpp_flow.internal_fabric.fabric', 'submodule': ['pull_code']}
 	)
 	def pull_fabric(self, filename, output=None):
 		pull_code(filename, self.flow_fabric, output)
 
 
 	@impmagic.loader(
-		{'module':'internal_fabric.fabric', 'submodule': ['push_code']}
+		{'module':'zpp_flow.internal_fabric.fabric', 'submodule': ['push_code']}
 	)
 	def push_fabric(self, filename, dest=None):
 		push_code(filename, self.flow_fabric, dest)
 
 
 	@impmagic.loader(
-		{'module':'internal_fabric.fabric', 'submodule': ['pop_code']}
+		{'module':'zpp_flow.internal_fabric.fabric', 'submodule': ['pop_code']}
 	)
 	def pop_fabric(self, filename):
 		pop_code(filename, self.flow_fabric)

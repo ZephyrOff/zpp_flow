@@ -15,7 +15,7 @@ class Context:
 	@impmagic.loader(
 		{'module':'os.path', 'submodule': ['dirname']},
 		{'module': 'sys'},
-		{'module':'core.structure', 'submodule': ['path_rep']},
+		{'module':'zpp_flow.core.structure', 'submodule': ['path_rep']},
 	)
 	def __init__(self, virtdir, virtname = None, prompt=None):
 		self.env_dir = virtdir
@@ -68,9 +68,9 @@ def create_temp_env(installmodule=None, upgradepip=True):
 	{'module':'os.path', 'submodule': ['exists', 'isdir']},
 	{'module':'os'},
 	{'module':'virtualenv'},
-	{'module':'app.logs', 'submodule': ['logs']},
+	{'module':'zpp_flow.app.logs', 'submodule': ['logs']},
 	{'module':'sys'},
-	{'module':'core.structure', 'submodule': ['path_rep', 'path_reg']},
+	{'module':'zpp_flow.core.structure', 'submodule': ['path_rep', 'path_reg']},
 )
 def create_environment(virtdir, name=None, installmodule=None, clear=False, upgradepip=True, symlinks=False, sitepackages=False, proxy=None, prompt=None):
 	if proxy==None:
@@ -166,7 +166,7 @@ def create_environment(virtdir, name=None, installmodule=None, clear=False, upgr
 @impmagic.loader(
 	{'module':'os.path', 'submodule': ['exists']},
 	{'module':'shutil', 'submodule': ['rmtree']},
-	{'module':'app.logs', 'submodule': ['logs']}
+	{'module':'zpp_flow.app.logs', 'submodule': ['logs']}
 )
 def remove_environment(virtdir):
 	if exists(virtdir):
@@ -185,9 +185,9 @@ def remove_environment(virtdir):
 	{'module':'__main__'},
 	{'module':'subprocess'},
 	{'module':'chardet'},
-	{'module':'app.logs', 'submodule': ['logs']},
-	{'module':'core.structure', 'submodule': ['path_rep']},
-	{'module':'core.sandbox.package', 'submodule': ['get_package']},
+	{'module':'zpp_flow.app.logs', 'submodule': ['logs']},
+	{'module':'zpp_flow.core.structure', 'submodule': ['path_rep']},
+	{'module':'zpp_flow.core.sandbox.package', 'submodule': ['get_package']},
 )
 def upgrade_module(env_exe, namemodule, version=None, proxy=None, force=False, reinstall=False):
 	logs(f"Mise à jour du module {namemodule}")
@@ -261,7 +261,7 @@ def upgrade_module(env_exe, namemodule, version=None, proxy=None, force=False, r
 @impmagic.loader(
 	{'module':'__main__'},
 	{'module':'concurrent.futures', 'as': 'worker'},
-	{'module':'core.structure', 'submodule': ['path_rep']},
+	{'module':'zpp_flow.core.structure', 'submodule': ['path_rep']},
 )
 def install_pool(env_exe, installmodule, proxy=None, force=False):
 	env_exe = env_exe.replace(path_rep[1], path_rep[0])
@@ -286,9 +286,9 @@ def install_pool(env_exe, installmodule, proxy=None, force=False):
 	{'module':'__main__'},
 	{'module':'subprocess'},
 	{'module':'chardet'},
-	{'module':'app.logs', 'submodule': ['logs']},
+	{'module':'zpp_flow.app.logs', 'submodule': ['logs']},
 	{'module':'re', 'submodule': ['compile']},
-	{'module':'core.sandbox.package', 'submodule': ['get_package', 'package_regex']},
+	{'module':'zpp_flow.core.sandbox.package', 'submodule': ['get_package', 'package_regex']},
 )
 def install_module(env_exe, namemodule, proxy=None, force=False):
 	if proxy==None:
@@ -371,9 +371,9 @@ def install_module(env_exe, namemodule, proxy=None, force=False):
 	{'module':'os', 'submodule': ['name', 'environ']},
 	{'module':'subprocess'},
 	{'module':'pexpect'},
-	{'module':'app.logs', 'submodule': ['logs']},
+	{'module':'zpp_flow.app.logs', 'submodule': ['logs']},
 	{'module':'sys'},
-	{'module':'core.structure', 'submodule': ['path_rep', 'path_reg', 'get_os']},
+	{'module':'zpp_flow.core.structure', 'submodule': ['path_rep', 'path_reg', 'get_os']},
 )
 def open_environment(virtdir, projectfolder="", shell=False):
 	context = Context(path_reg(virtdir))

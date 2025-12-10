@@ -1,7 +1,7 @@
 import impmagic
 
 @impmagic.loader(
-	{'module':'app.logs', 'submodule': ['print_nxs']}
+	{'module':'zpp_flow.app.logs', 'submodule': ['print_nxs']}
 )
 def help():
 	print_nxs("    ________             \n   / ____/ /___ _      __\n  / /_  / / __ \\ | /| / /\n / __/ / / /_/ / |/ |/ / \n/_/   /_/\\____/|__/|__/  \n                         \n")
@@ -50,7 +50,7 @@ def print_config(data):
 
 class Cli:
 	@impmagic.loader(
-		{'module':'core.main', 'submodule': ['Flow']}
+		{'module':'zpp_flow.core.main', 'submodule': ['Flow']}
 	)
 	def __init__(self):
 		self.flow = Flow()
@@ -60,7 +60,7 @@ class Cli:
 
 	@impmagic.loader(
 		{'module':'sys'},
-		{'module':'internal_fabric.fabric', 'submodule': ['show_tree']}
+		{'module':'zpp_flow.internal_fabric.fabric', 'submodule': ['show_tree']}
 	)
 	def switch(self):
 		if len(sys.argv)>1:
@@ -94,7 +94,7 @@ class Cli:
 
 
 	@impmagic.loader(
-		{'module':'app.logs', 'submodule': ['logs']},
+		{'module':'zpp_flow.app.logs', 'submodule': ['logs']},
 		{'module':'zpp_args'}
 	)
 	def start(self):
@@ -126,8 +126,8 @@ class Cli:
 	#Afficher le détail des task et flow
 	@impmagic.loader(
 		{'module':'zpp_args'},
-		{'module':'app.logs', 'submodule': ['print_nxs']},
-		{'module':'internal_fabric.analyse', 'submodule': ['tree_plugin']},
+		{'module':'zpp_flow.app.logs', 'submodule': ['print_nxs']},
+		{'module':'zpp_flow.internal_fabric.analyse', 'submodule': ['tree_plugin']},
 	)
 	def details(self):
 		parse = zpp_args.parser(sys.argv[1:])
@@ -152,7 +152,7 @@ class Cli:
 	#Afficher la liste des task et flow
 	@impmagic.loader(
 		{'module':'zpp_args'},
-		{'module':'app.logs', 'submodule': ['print_nxs']}
+		{'module':'zpp_flow.app.logs', 'submodule': ['print_nxs']}
 	)
 	def list(self):
 		parse = zpp_args.parser(sys.argv[1:])
@@ -180,8 +180,8 @@ class Cli:
 	@impmagic.loader(
 		{'module':'zpp_args'},
 		{'module':'sys'},
-		{'module':'app.logs', 'submodule': ['logs', 'print_nxs']},
-		{'module':'internal_fabric.analyse', 'submodule': ['tree_plugin']}
+		{'module':'zpp_flow.app.logs', 'submodule': ['logs', 'print_nxs']},
+		{'module':'zpp_flow.internal_fabric.analyse', 'submodule': ['tree_plugin']}
 	)
 	def info(self):
 		parse = zpp_args.parser(sys.argv[1:])
@@ -224,7 +224,7 @@ class Cli:
 
 	@impmagic.loader(
 		{'module':'zpp_args'},
-		{'module':'app.logs', 'submodule': ['logs', 'print_nxs']}
+		{'module':'zpp_flow.app.logs', 'submodule': ['logs', 'print_nxs']}
 	)
 	def config(self):
 		parse = zpp_args.parser(sys.argv[1:])
@@ -309,8 +309,8 @@ class Cli:
 
 
 	@impmagic.loader(
-		{'module':'core.vault', 'submodule': ['Vault']},
-		{'module':'app.logs', 'submodule': ['logs', 'print_tree']},
+		{'module':'zpp_flow.core.vault', 'submodule': ['Vault']},
+		{'module':'zpp_flow.app.logs', 'submodule': ['logs', 'print_tree']},
 		{'module':'zpp_args'},
 		{'module':'zpp_store'},
 		{'module':'keyring'},

@@ -52,7 +52,7 @@ def show_tree(path, string="", lvl=0, arbo_display=[]):
 	{'module':'zpp_args'},
 	{'module':'sys'},
 	{'module':'shutil'},
-	{'module':'app.logs', 'submodule': ['logs']},
+	{'module':'zpp_flow.app.logs', 'submodule': ['logs']},
 	{'module':'os.path', 'submodule': ['join', 'exists', 'isdir', 'basename', 'expanduser']}
 )
 def pull_code(filename, flow_fabric, output=None):
@@ -78,7 +78,7 @@ def pull_code(filename, flow_fabric, output=None):
 	{'module':'zpp_args'},
 	{'module':'sys'},
 	{'module':'shutil'},
-	{'module':'app.logs', 'submodule': ['logs']},
+	{'module':'zpp_flow.app.logs', 'submodule': ['logs']},
 	{'module':'os', 'submodule': ['makedirs']},
 	{'module':'os.path', 'submodule': ['join', 'exists', 'isdir', 'basename', 'dirname', 'expanduser']}
 )
@@ -110,7 +110,7 @@ def push_code(filename, flow_fabric, dest=None):
 
 @impmagic.loader(
 	{'module':'shutil'},
-	{'module':'app.logs', 'submodule': ['logs']},
+	{'module':'zpp_flow.app.logs', 'submodule': ['logs']},
 	{'module':'os', 'submodule': ['remove']},
 	{'module':'os.path', 'submodule': ['join', 'exists', 'isdir', 'basename', 'dirname', 'expanduser']}
 )
