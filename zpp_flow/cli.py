@@ -4,7 +4,7 @@ import impmagic
 	{'module':'zpp_flow.app.logs', 'submodule': ['print_nxs']}
 )
 def help():
-	print_nxs("    ________             \n   / ____/ /___ _      __\n  / /_  / / __ \\ | /| / /\n / __/ / / /_/ / |/ |/ / \n/_/   /_/\\____/|__/|__/  \n                         \n")
+	print_nxs("    ________\n   / ____/ /___ _      __\n  / /_  / / __ \\ | /| / /\n / __/ / / /_/ / |/ |/ / \n/_/   /_/\\____/|__/|__/  \n						 \n")
 
 	helper= {
 		"config": "Affiche/Modifie la configuration",
@@ -39,12 +39,12 @@ def print_config(data):
 			for key, value in function.items():
 				if key=="arguments":
 					if len(value):
-						print_nxs(f"    arguments: ")
+						print_nxs(f"	arguments: ")
 						for e in value:
-							print_nxs(f"      {e}", color='yellow')
+							print_nxs(f"	  {e}", color='yellow')
 
 				elif (key=="args" and value==True) or (key=="kwargs" and value==True) or (key!="args" and key!="kwargs"):
-					print_nxs(f"    {key}: ", nojump=True)
+					print_nxs(f"	{key}: ", nojump=True)
 					print_nxs(value, color='yellow')
 
 
@@ -213,7 +213,7 @@ class Cli:
 							if len(value):
 								print_nxs(f"  arguments: ")
 								for e in value:
-									print_nxs(f"    {e}", color='yellow')
+									print_nxs(f"	{e}", color='yellow')
 
 						elif (key=="args" and value==True) or (key=="kwargs" and value==True) or (key!="args" and key!="kwargs"):
 							print_nxs(f"  {key}: ", nojump=True)
@@ -230,35 +230,49 @@ class Cli:
 		parse = zpp_args.parser(sys.argv[1:])
 		parse.command = "flow config"
 		parse.set_description("Affichage/Modification de la configuration")
+		parse.set_description("Affichage/Modification de la configuration de nexus")
+		parse.set_argument(longname="disable", description="Désactive le paramètre", default=False)
+		parse.set_argument(longname="enable", description="Active le paramètre masqué", default=False)
 		parse.disable_check()
 		parameter, argument = parse.load()
 
 		if parameter!=None:
-			data = self.flow.conf.load()
-			if len(parameter):
+			if len(parameter)==0:
+				config_data = self.flow.conf.to_dict()
+				for cat, cat_info in config_data.items():
+					if isinstance(cat_info, dict):
+						print_nxs(f"\n#{cat}", color='dark_gray')
+						for key, value in cat_info.items():
+							print_nxs(f"   {key}: ", nojump=True)
+							print_nxs(value, color='yellow')
+					else:
+						print_nxs(f"{cat}: ", nojump=True)
+						print_nxs(cat_info, color='yellow')
+
+			else:
 				parameter[0] = parameter[0].lower()
-				if parameter[0] in data:
-					if isinstance(data[parameter[0]], bool):
-						if data[parameter[0]]==True:
-							self.flow.conf.change(parameter[0], False)
+				if self.flow.conf.get(parameter[0])!=None:
+					if isinstance(self.flow.conf.get(parameter[0]), bool):
+						if self.flow.conf.get(parameter[0])==True:
+							self.flow.conf.set(parameter[0], False)
 							logs(f"Passage de {parameter[0]} à False")  
 						else:
-							self.flow.conf.change(parameter[0], True)	
-							logs(f"Passage de {parameter[0]} à True")  
-					if isinstance(data[parameter[0]], str):
-						if len(parameter)==2:
-							logs(f"Modification du paramètre {parameter[0]}")  
-							self.flow.conf.change(parameter[0], parameter[1])
-					if isinstance(data[parameter[0]], int):
-						if len(parameter)==2 and parameter[1].isdigit():
-							logs(f"Modification du paramètre {parameter[0]}")  
-							self.flow.conf.change(parameter[0], parameter[1])
-			else:
-				for cat, cat_info in data.items():
-					print_nxs(f"\n#{cat}", color='dark_gray')
-					for key, value in cat_info.items():
-						print_nxs(f"{key}: ", nojump=True)
-						print_nxs(value, color='yellow')
+							self.flow.conf.set(parameter[0], True)
+							logs(f"Passage de {parameter[0]} à True")
+					else:
+						if len(parameter)>1:
+							if isinstance(self.flow.conf.get(parameter[0]), int):
+								parameter[1] = int(parameter[1])
+							elif isinstance(self.flow.conf.get(parameter[0]), float):
+								parameter[1] = float(parameter[1])
+
+							self.flow.conf.set(parameter[0], parameter[1])
+							logs(f"Passage de {parameter[0]} à {parameter[1]}")
+						else:
+							logs(f"Valeur manquante pour {parameter[0]}", "error")  
+					self.flow.conf.save()
+				else:
+					logs(f"Paramètre {parameter[0]} introuvable", "error")
 
 
 	@impmagic.loader(

@@ -5,7 +5,6 @@ import impmagic
 	{'module': 'datetime', 'submodule': ['datetime']},
 )
 def logs(message, lvl='info', nodate=True):
-	#if __main__.nxs.conf.load(val='logs.display', section='',default=True):
 	level_colors = {
 		'logs': 'light_gray',
 		'info': 'cyan',
@@ -18,7 +17,6 @@ def logs(message, lvl='info', nodate=True):
 
 	color = level_colors.get(lvl, 'cyan')  # couleur par défaut
 	
-	#if nodate==False or (nodate==None and __main__.nxs.conf.load(val='logs.date', section='',default=True)):
 	if not nodate:
 		date = datetime.now().strftime("%Y/%m/%d - %H:%M:%S.%f")
 		print(f"{fg('dark_gray')}[{date}] - {attr(0)}{fg(color)}{message}{attr(0)}")

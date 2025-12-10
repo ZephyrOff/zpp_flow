@@ -57,3 +57,6 @@
 ## [1.5.0] - 2025-12-10
 - Patch pour PEP 328
 - Conversion du fichier de config pour zpp_config 2.0
+
+## [1.5.1] - 2025-12-10
+- Correction syntaxe config

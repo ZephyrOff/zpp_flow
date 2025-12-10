@@ -48,9 +48,11 @@ class Flow:
 			print("Création du fichier de config")
 			self.conf = Config(self.ini_file)
 			if os.name=="nt":
-				self.conf.add(val="flow_fabric", key=join("~\\.config\\zpp_flow\\.config", "fabric"), section="general")
+				self.conf.set("general.flow_fabric", join("~\\.config\\zpp_flow\\.config", "fabric"))
+				self.conf.save()
 			else:
-				self.conf.add(val="flow_fabric", key=join("~/.config/zpp_flow/.config", "fabric"), section="general")
+				self.conf.set("general.flow_fabric", join("~/.config/zpp_flow/.config", "fabric"))
+				self.conf.save()
 
 		else:
 			self.conf = Config(self.ini_file)
